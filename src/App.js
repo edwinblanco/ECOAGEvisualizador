@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './App.css'
 import Chart from './Component/Chart'
+import Dash from './Component/Dash'
 
 const App = (props) => {
   const [data1, setData1] = useState([])
@@ -33,9 +34,10 @@ const App = (props) => {
     }
   }, [])
 
-  return <div className='fill'>
-    <Chart id='chart-1' data={data1}/>
-    <Chart id='chart-2' data={data2}/>
+  return <div className='fill' style={{height: 'auto'}}>
+    {/*<Chart id='chart-1' data={data1}/>
+    <Chart id='chart-2' data={data2}/>*/}
+    <Dash id='dash-1' data={1} />
   </div>
 }
 
