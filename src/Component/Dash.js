@@ -10,6 +10,13 @@ import {
   translatePoint,
   EmptyFill,
   UIDraggingModes,
+  UIVisibilityModes,
+  MarkerBuilders,
+  UIBackgrounds,
+  UIDirections,
+  SolidLine,
+  SolidFill,
+  ColorRGBA,
 } from "@arction/lcjs";
 import axios from "axios";
 import React, { useRef, useEffect } from "react";
@@ -21,7 +28,7 @@ const Dash = (props) => {
   useEffect(() => {
     // Se cread el Dash
     const db = lightningChart().Dashboard({
-      theme: Themes.glacier,
+      theme: Themes.auroraBorealis,
       numberOfRows: 13,
       numberOfColumns: 8,
     });
@@ -60,6 +67,7 @@ const Dash = (props) => {
       serie2.setCursorResultTableFormatter(
         (builder, series, Xvalue, Yvalue) => {
           // Find cached entry for the figure.
+
           return builder
             .addRow("")
             .addRow("Fecha: " + series.axisX.formatValue(Xvalue))
@@ -67,7 +75,9 @@ const Dash = (props) => {
         }
       );
 
-      chart.getDefaultAxisX().setTickStrategy(AxisTickStrategies.DateTime);
+      chart.onSeriesBackgroundMouseClick((cursor) => {
+        console.log(chart.getAxes());
+      });
 
       chart.setAutoCursor((cursor) =>
         cursor
@@ -80,7 +90,41 @@ const Dash = (props) => {
 
       chart.setTitle("");
 
-      return { serie1: serie, serie2: serie2, grafica: chart };
+      chart.getDefaultAxisX().onAxisInteractionAreaMouseClick((event) => {
+        console.log("disssssssteee");
+      });
+
+      // Create a builder for SeriesMarker to allow for full modification of its structure.
+      const SeriesMarkerBuilder = MarkerBuilders.XY.setPointMarker(
+        UIBackgrounds.Diamond
+      )
+        .setResultTableBackground(UIBackgrounds.Pointer)
+        .addStyler((marker) =>
+          marker
+            .setPointMarker((point) =>
+              point.setSize({ x: 13, y: 13 })
+            )
+            .setResultTable((table) =>
+              table
+                .setOrigin(UIOrigins.CenterBottom)
+                .setMargin({ bottom: 0 })
+                .setBackground((arrow) =>
+                  arrow
+                    .setDirection(UIDirections.Down)
+                    .setPointerAngle(80)
+                    .setPointerLength(100)
+                )
+            )
+            .setGridStrokeXCut(true)
+            .setAutoFitStrategy(undefined)
+        );
+
+      return {
+        serie1: serie,
+        serie2: serie2,
+        grafica: chart,
+        SeriesMarkerBuilder: SeriesMarkerBuilder,
+      };
     }
 
     // se crea la funcion que genera la grafica
@@ -125,15 +169,15 @@ const Dash = (props) => {
           for (let i = 0; i < res.data.length; i++) {
             dataprincial.push({
               x: Date.parse(res.data[i]["DATETIME"]),
-              y: Number(res.data[i]["_0108"]),
+              y: -1 * Number(res.data[i]["_0108"]),
             });
             dataV1revertida.push({
-              x: Number(res.data[i]["_0108"]), 
-              y: Date.parse(res.data[i]["DATETIME"]),
+              x: Number(res.data[i]["_0113"]),
+              y: Number(res.data[i]["_0108"]),
             });
             dataprincia2.push({
               x: Date.parse(res.data[i]["DATETIME"]),
-              y: Number(res.data[i]["_0110"]),
+              y: -1 * Number(res.data[i]["_0110"]),
             });
             dataV1.push({
               x: Date.parse(res.data[i]["DATETIME"]),
@@ -164,13 +208,13 @@ const Dash = (props) => {
           graficaPrincipal.serie2.clear().add(dataprincia2);
           graficaPrincipal.grafica.getDefaultAxisY().setTitle("Profundidad");
           graficaPrincipal.grafica.getDefaultAxisX().setTitle("Tiempo");
-          graficaPrincipal.grafica.getDefaultAxisY().setInterval(1, -1);
+
           graficaPrincipal.serie1.setName("[0108] DBTM");
           graficaPrincipal.serie2.setName("[0110] DMEA");
           // Add download button to save chart frame
           graficaPrincipal.grafica
             .addUIElement(UIElementBuilders.ButtonBox)
-            .setPosition({ x: 99, y: 99 })
+            .setPosition({ x: 100, y: 105 })
             .setOrigin(UIOrigins.RightTop)
             .setText("Download PNG")
             .setPadding({ top: 5, right: 5, bottom: 5, left: 5 })
@@ -180,6 +224,89 @@ const Dash = (props) => {
             .onMouseClick((event) => {
               graficaPrincipal.grafica.saveToFile(" - Screenshot");
             });
+          graficaPrincipal.grafica
+            .getDefaultAxisX()
+            .setTickStrategy(AxisTickStrategies.DateTime);
+
+          //graficaPrincipal.grafica.getDefaultAxisY().setInterval(1, -1);
+
+          const getEventos = async (id) => {
+            axios
+              .get("http://localhost:9000/api/eventos/wells/1")
+              .then((response) => {
+                if (response.status === 200) {
+                  console.log("OK Eventos");
+                  console.log(response.data);
+
+                  const seriesMarkers = [];
+
+                  graficaPrincipal.grafica
+                    .addUIElement(UIElementBuilders.ButtonBox)
+                    .setPosition({ x: 80, y: 105 })
+                    .setOrigin(UIOrigins.RightTop)
+                    .setText("Ver eventos")
+                    .setPadding({ top: 5, right: 5, bottom: 5, left: 5 })
+                    .setButtonOffSize(0)
+                    .setButtonOnSize(0)
+                    .setDraggingMode(UIDraggingModes.notDraggable)
+                    .onMouseClick((event) => {
+                      for (let i = 0; i < response.data.length; i++) {
+                        // Add a SeriesMarker to the series.
+                        const seriesMarker = graficaPrincipal.serie1
+                          .addMarker(graficaPrincipal.SeriesMarkerBuilder)
+                          .setPosition({
+                            x: Date.parse(response.data[i]["fecha_inicial"]),
+                          });
+
+                        seriesMarkers.push(seriesMarker);
+
+                        seriesMarker.setResultTableVisibility(
+                          UIVisibilityModes.whenHovered
+                        );
+                      }
+                    });
+
+                  graficaPrincipal.grafica
+                    .addUIElement(UIElementBuilders.ButtonBox)
+                    .setPosition({ x: 60, y: 105 })
+                    .setOrigin(UIOrigins.RightTop)
+                    .setText("Ocultar eventos")
+                    .setPadding({ top: 5, right: 5, bottom: 5, left: 5 })
+                    .setButtonOffSize(0)
+                    .setButtonOnSize(0)
+                    .setDraggingMode(UIDraggingModes.notDraggable)
+                    .onMouseClick((event) => {
+                      for (let i = 0; i < seriesMarkers.length; i++) {
+                        seriesMarkers[i].dispose();
+                      }
+                    });
+                } else {
+                  console.log(
+                    "Ocurrió un error consultado los eventos del pozo, intente nuevamente"
+                  );
+                  console.log(response.data);
+                }
+              })
+              .catch((error) => {
+                console.log(
+                  "Ocurrió un error consultado los eventos del pozo, intente nuevamente"
+                );
+                console.log(error.message);
+              });
+          };
+
+          getEventos();
+
+          graficaPrincipal.serie1.setCursorResultTableFormatter(
+            (builder, series, Xvalue, Yvalue) => {
+              // Find cached entry for the figure.
+
+              return builder
+                .addRow("Evento ")
+                .addRow("Fecha: " + series.axisX.formatValue(Xvalue))
+                .addRow("Profundidad: " + Yvalue.toFixed());
+            }
+          );
           legend.add(graficaPrincipal.grafica);
 
           const graficaV1 = crear2Dchart(0, 8, 5, 1);
@@ -228,7 +355,7 @@ const Dash = (props) => {
           graficaV5revertida.grafica
             .getDefaultAxisX()
             .setTickStrategy(AxisTickStrategies.Empty);
-            graficaV5revertida.grafica
+          graficaV5revertida.grafica
             .getDefaultAxisY()
             .setTickStrategy(AxisTickStrategies.Empty);
           legend.add(graficaV5.grafica);
@@ -279,33 +406,29 @@ const Dash = (props) => {
             }
           }
 
-          const resultTableo = db
-            .createUIPanel({
-              columnIndex: 5,
-              rowIndex: 8,
-              columnSpan: 3,
-              rowSpan: 5,
-            })
+          graficaPrincipal.grafica
             .addUIElement(UIElementBuilders.ButtonBox)
-            .setText("Cambiar vista2")
+            .setPosition({ x: 40, y: 105 })
+            .setOrigin(UIOrigins.RightTop)
+            .setText("Vista fija")
             .setPadding({ top: 5, right: 5, bottom: 5, left: 5 })
-            .setPosition({ x: 30, y: 90 })
+            .setButtonOffSize(0)
+            .setButtonOnSize(0)
+            .setDraggingMode(UIDraggingModes.notDraggable)
             .onMouseClick((event) => {
               // Setup custom data cursor.
               var buttonControl = 0;
               crearCuadroVista(buttonControl);
 
-              const resultTable2 = db
-                .createUIPanel({
-                  columnIndex: 5,
-                  rowIndex: 8,
-                  columnSpan: 3,
-                  rowSpan: 5,
-                })
+              const vistafija = graficaPrincipal.grafica
                 .addUIElement(UIElementBuilders.ButtonBox)
-                .setText("Cambiar vista")
+                .setPosition({ x: 20, y: 105 })
+                .setOrigin(UIOrigins.RightTop)
+                .setText("Vista fija grafica")
                 .setPadding({ top: 5, right: 5, bottom: 5, left: 5 })
-                .setPosition({ x: 70, y: 90 })
+                .setButtonOffSize(0)
+                .setButtonOnSize(0)
+                .setDraggingMode(UIDraggingModes.notDraggable)
                 .onMouseClick((event) => {
                   if (buttonControl == 0) {
                     buttonControl = 1;
@@ -368,29 +491,26 @@ const Dash = (props) => {
                   });
                 });
 
-                const resultTable3 = db
-                  .createUIPanel({
-                    columnIndex: 5,
-                    rowIndex: 8,
-                    columnSpan: 3,
-                    rowSpan: 5,
-                  })
+                /*const resultTable3 = graficaPrincipal.grafica
                   .addUIElement(UIElementBuilders.ButtonBox)
-                  .setText("Ocultar vista")
+                  .setPosition({ x: 50, y: 105 })
+                  .setOrigin(UIOrigins.RightTop)
+                  .setText("Ocultar cuadro")
                   .setPadding({ top: 5, right: 5, bottom: 5, left: 5 })
-                  .setPosition({ x: 50, y: 10 })
+                  .setButtonOffSize(0)
+                  .setButtonOnSize(0)
+                  .setDraggingMode(UIDraggingModes.notDraggable)
                   .onMouseClick((event) => {
                     resultTable.dispose();
-                  });
+                  });*/
               }
-              
             });
-            synchronizeAxisIntervals(
-              ...chartList.map((chart) => chart.getDefaultAxisX())
-            );
-            
+
+          synchronizeAxisIntervals(
+            ...chartList.map((chart) => chart.getDefaultAxisX())
+          );
         }
-        
+
         //console.log(res);
       })
       .catch(function (err) {
