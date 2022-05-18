@@ -19,6 +19,7 @@ import {
   ColorRGBA,
   FunnelChartTypes,
   emptyLine,
+  LegendBoxBuilders,
 } from "@arction/lcjs";
 import axios from "axios";
 import React, { useRef, useEffect } from "react";
@@ -115,9 +116,9 @@ const Dash = (props) => {
 
           const uiDivTitle = document.createElement("span");
           uiDiv.append(uiDivTitle);
-          uiDivTitle.innerHTML = "Click to add graph";
+          uiDivTitle.innerHTML = "Click para agregar gráfica";
 
-          const nombresGrafica = ["principal", "prueba", "vertical"];
+          const nombresGrafica = ["principal", "horizontal", "vertical"];
           const seriesList = [];
 
           const dashDiv = document.createElement("div_dash");
@@ -198,17 +199,18 @@ const Dash = (props) => {
                     }
                   }
 
-                  const chart = chartList[0]
+                  const chart = chartList[0];
 
                   chart
                     .addUIElement(UIElementBuilders.ButtonBox)
-                    .setPosition({ x: 40, y: 95 })
-                    .setOrigin(UIOrigins.Center)
+                    .setPosition({ x: 40, y: 100 })
+                    .setOrigin(UIOrigins.CenterTop)
                     .setText("Vista fija")
                     .setPadding({ top: 1, right: 1, bottom: 1, left: 1 })
+                    .setMargin({ top: 5, right: 1, bottom: 1, left: 1 })
                     .setButtonOffSize(0)
                     .setButtonOnSize(0)
-                    .setDraggingMode(UIDraggingModes.notDraggable)
+                    .setDraggingMode(UIDraggingModes.draggable)
                     .onMouseClick((event) => {
                       // Setup custom data cursor.
                       var buttonControl = 0;
@@ -216,13 +218,14 @@ const Dash = (props) => {
 
                       const vistafija = chart
                         .addUIElement(UIElementBuilders.ButtonBox)
-                        .setPosition({ x: 20, y: 95 })
-                        .setOrigin(UIOrigins.Center)
+                        .setPosition({ x: 20, y: 100 })
+                        .setOrigin(UIOrigins.CenterTop)
                         .setText("Vista fija grafica")
                         .setPadding({ top: 1, right: 1, bottom: 1, left: 1 })
+                        .setMargin({ top: 5, right: 1, bottom: 1, left: 1 })
                         .setButtonOffSize(0)
                         .setButtonOnSize(0)
-                        .setDraggingMode(UIDraggingModes.notDraggable)
+                        .setDraggingMode(UIDraggingModes.draggable)
                         .onMouseClick((event) => {
                           if (buttonControl == 0) {
                             buttonControl = 1;
@@ -441,75 +444,6 @@ const Dash = (props) => {
 
               //graficaPrincipal.grafica.getDefaultAxisY().setInterval(1, -1);
 
-              const getEventos = async (id) => {
-                axios
-                  .get("http://localhost:9000/api/eventos/wells/1")
-                  .then((response) => {
-                    if (response.status === 200) {
-                      console.log("OK Eventos");
-                      console.log(response.data);
-
-                      const seriesMarkers = [];
-
-                      graficaPrincipal.grafica
-                        .addUIElement(UIElementBuilders.ButtonBox)
-                        .setPosition({ x: 80, y: 105 })
-                        .setOrigin(UIOrigins.RightTop)
-                        .setText("Ver eventos")
-                        .setPadding({ top: 5, right: 5, bottom: 5, left: 5 })
-                        .setButtonOffSize(0)
-                        .setButtonOnSize(0)
-                        .setDraggingMode(UIDraggingModes.notDraggable)
-                        .onMouseClick((event) => {
-                          for (let i = 0; i < response.data.length; i++) {
-                            // Add a SeriesMarker to the series.
-                            const seriesMarker = graficaPrincipal.serie1
-                              .addMarker(graficaPrincipal.SeriesMarkerBuilder)
-                              .setPosition({
-                                x: Date.parse(
-                                  response.data[i]["fecha_inicial"]
-                                ),
-                              });
-
-                            seriesMarkers.push(seriesMarker);
-
-                            seriesMarker.setResultTableVisibility(
-                              UIVisibilityModes.whenHovered
-                            );
-                          }
-                        });
-
-                      graficaPrincipal.grafica
-                        .addUIElement(UIElementBuilders.ButtonBox)
-                        .setPosition({ x: 60, y: 105 })
-                        .setOrigin(UIOrigins.RightTop)
-                        .setText("Ocultar eventos")
-                        .setPadding({ top: 5, right: 5, bottom: 5, left: 5 })
-                        .setButtonOffSize(0)
-                        .setButtonOnSize(0)
-                        .setDraggingMode(UIDraggingModes.notDraggable)
-                        .onMouseClick((event) => {
-                          for (let i = 0; i < seriesMarkers.length; i++) {
-                            seriesMarkers[i].dispose();
-                          }
-                        });
-                    } else {
-                      console.log(
-                        "Ocurrió un error consultado los eventos del pozo, intente nuevamente"
-                      );
-                      console.log(response.data);
-                    }
-                  })
-                  .catch((error) => {
-                    console.log(
-                      "Ocurrió un error consultado los eventos del pozo, intente nuevamente"
-                    );
-                    console.log(error.message);
-                  });
-              };
-
-              getEventos();
-
               graficaPrincipal.serie1.setCursorResultTableFormatter(
                 (builder, series, Xvalue, Yvalue) => {
                   // Find cached entry for the figure.
@@ -520,31 +454,10 @@ const Dash = (props) => {
                     .addRow("Profundidad: " + Yvalue.toFixed());
                 }
               );
-              //legend.add(graficaPrincipal.grafica);
-
-              /*const chartList = [
-              graficaPrincipal.grafica,
-              //graficaV1.grafica,
-              //graficaV2.grafica,
-              //graficaV3.grafica,
-              //graficaV4.grafica,
-              //graficaV5.grafica,
-            ];*/
-
-              const seriesList = [
-                graficaPrincipal.serie1,
-                /*graficaPrincipal.serie2,
-              graficaV1.serie1,
-              graficaV2.serie1,
-              graficaV3.serie1,
-              graficaV4.serie1,
-              graficaV5.serie1,*/
-              ];
-              console.log(seriesList);
 
               return graficaPrincipal.grafica;
             }
-            if (nombre == "prueba") {
+            if (nombre == "horizontal") {
               const graficaV1 = grafica;
               graficaV1.serie1.clear().add(dataV1);
               graficaV1.serie2.dispose();
@@ -607,6 +520,88 @@ const Dash = (props) => {
                 .onMouseClick((event) => {
                   chart.saveToFile(" - Screenshot");
                 });
+
+              const getEventos = async (id) => {
+                axios
+                  .get("http://localhost:9000/api/eventos/wells/1")
+                  .then((response) => {
+                    if (response.status === 200) {
+                      console.log("OK Eventos");
+                      console.log(response.data);
+
+                      const seriesMarkers = [];
+
+                      chart
+                        .addUIElement(UIElementBuilders.ButtonBox)
+                        .setPosition({ x: 80, y: 100 })
+                        .setOrigin(UIOrigins.CenterTop)
+                        .setText("Ver eventos")
+                        .setPadding({ top: 1, right: 1, bottom: 1, left: 1 })
+                        .setMargin({ top: 5, right: 1, bottom: 1, left: 1 })
+                        .setButtonOffSize(0)
+                        .setButtonOnSize(0)
+                        .setDraggingMode(UIDraggingModes.draggable)
+                        .onMouseClick((event) => {
+                          for (let i = 0; i < response.data.length; i++) {
+                            // Add a SeriesMarker to the series.
+                            const seriesMarker = creacionGrafica.serie1
+                              .addMarker(creacionGrafica.SeriesMarkerBuilder)
+                              .setPosition({
+                                x: Date.parse(
+                                  response.data[i]["fecha_inicial"]
+                                ),
+                              });
+
+                            seriesMarkers.push(seriesMarker);
+
+                            seriesMarker.setResultTableVisibility(
+                              UIVisibilityModes.whenHovered
+                            );
+                          }
+                        });
+
+                      chart
+                        .addUIElement(UIElementBuilders.ButtonBox)
+                        .setPosition({ x: 60, y: 100 })
+                        .setOrigin(UIOrigins.RightTop)
+                        .setText("Ocultar eventos")
+                        .setPadding({ top: 1, right: 1, bottom: 1, left: 1 })
+                        .setMargin({ top: 5, right: 1, bottom: 1, left: 1 })
+                        .setButtonOffSize(0)
+                        .setButtonOnSize(0)
+                        .setDraggingMode(UIDraggingModes.draggable)
+                        .onMouseClick((event) => {
+                          for (let i = 0; i < seriesMarkers.length; i++) {
+                            seriesMarkers[i].dispose();
+                          }
+                        });
+                    } else {
+                      console.log(
+                        "Ocurrió un error consultado los eventos del pozo, intente nuevamente"
+                      );
+                      console.log(response.data);
+                    }
+                  })
+                  .catch((error) => {
+                    console.log(
+                      "Ocurrió un error consultado los eventos del pozo, intente nuevamente"
+                    );
+                    console.log(error.message);
+                  });
+              };
+
+              getEventos();
+
+              // Create a LegendBox for Candle-Stick and Bollinger Band
+              const legendBoxOHLC = chart
+                .addLegendBox(LegendBoxBuilders.VerticalLegendBox)
+                // Dispose example UI elements automatically if they take too much space. This is to avoid bad UI on mobile / etc. devices.
+                .setAutoDispose({
+                  type: "max-width",
+                  maxWidth: 0.3,
+                });
+
+              legendBoxOHLC.add(chart);
             }
 
             chart.setPadding({ top: 30, right: 45, bottom: 1, left: 1 });
@@ -637,7 +632,7 @@ const Dash = (props) => {
                 charts.forEach((item) => item.updatePosition());
               });
 
-            if ((nombre = "principal")) {
+            if (nombre == "principal") {
               chart
                 .addUIElement(UIElementBuilders.ButtonBox)
                 .setPosition({ x: 99, y: 95 })
@@ -692,7 +687,7 @@ const Dash = (props) => {
                       });
                   };
 
-                  //getDatosFallas();
+                  getDatosFallas();
                 });
             }
 
@@ -752,6 +747,8 @@ const Dash = (props) => {
             const chart2 = personalizarGradicas(creacionGrafica, nombre);
             console.log(freeRow);
             console.log(typeof freeRow);
+
+            chart2.getDefaultAxisY().setTickStrategy(AxisTickStrategies.Empty);
 
             chart2
               .addUIElement(UIElementBuilders.ButtonBox)
