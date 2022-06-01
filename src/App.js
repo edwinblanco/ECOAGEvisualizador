@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import './App.css'
-import Chart from './Component/Chart'
 import Dash from './Component/Dash'
 
 const App = (props) => {

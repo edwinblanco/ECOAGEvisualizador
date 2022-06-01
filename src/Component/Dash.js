@@ -1,3 +1,4 @@
+//Se importan lo modulos necesarios desde la libreria de lightningChart
 import {
   lightningChart,
   Themes,
@@ -8,76 +9,95 @@ import {
   UIElementBuilders,
   AutoCursorModes,
   translatePoint,
-  EmptyFill,
   UIDraggingModes,
   UIVisibilityModes,
   MarkerBuilders,
   UIBackgrounds,
   UIDirections,
-  SolidLine,
-  SolidFill,
-  ColorRGBA,
-  FunnelChartTypes,
-  emptyLine,
   LegendBoxBuilders,
 } from "@arction/lcjs";
 import axios from "axios";
 import React, { useRef, useEffect } from "react";
-const XLSX = require("xlsx");
 
 const Dash = (props) => {
   const { data, id } = props;
   const chartRef = useRef(undefined);
 
   useEffect(() => {
+    console.time("loop");
     //hacemos la peticion axios y creamos las graficas
     axios
       .get("http://localhost:9000/api/datos_wits/wells/1/0", {
         responseType: "json",
       })
       .then(function (res) {
-        if (res.status == 200) {
+        if (res.status === 200) {
           console.log(res.data.length);
           //console.log(res.data);
           const dataprincial = [];
           const dataprincia2 = [];
-          const dataV1 = [];
-          const dataV2 = [];
-          const dataV3 = [];
-          const dataV4 = [];
-          const dataV5 = [];
-          const dataV1revertida = [];
+          const dataV1ROPA = [];
+          const dataV2WOBA = [];
+          const dataV3TQA = [];
+          const dataV4RPMA = [];
+          const dataV5MFIA = [];
+          const dataV1revertidaROPA = [];
+          const dataV2revertidaWOBA = [];
+          const dataV3revertidaTQA = [];
+          const dataV4revertidaRPMA = [];
+          const dataV5revertidaMFIA = [];
 
           for (let i = 0; i < res.data.length; i++) {
             dataprincial.push({
               x: Date.parse(res.data[i]["DATETIME"]),
               y: -1 * Number(res.data[i]["_0108"]),
             });
-            dataV1revertida.push({
+            dataV1revertidaROPA.push({
               x: Number(res.data[i]["_0113"]),
               y: -1 * Number(res.data[i]["_0108"]),
             });
+
+            dataV2revertidaWOBA.push({
+              x: Number(res.data[i]["_0116"]),
+              y: -1 * Number(res.data[i]["_0108"]),
+            });
+
+            dataV3revertidaTQA.push({
+              x: Number(res.data[i]["_0118"]),
+              y: -1 * Number(res.data[i]["_0108"]),
+            });
+
+            dataV4revertidaRPMA.push({
+              x: Number(res.data[i]["_0120"]),
+              y: -1 * Number(res.data[i]["_0108"]),
+            });
+
+            dataV5revertidaMFIA.push({
+              x: Number(res.data[i]["_0130"]),
+              y: -1 * Number(res.data[i]["_0108"]),
+            });
+
             dataprincia2.push({
               x: Date.parse(res.data[i]["DATETIME"]),
               y: -1 * Number(res.data[i]["_0110"]),
             });
-            dataV1.push({
+            dataV1ROPA.push({
               x: Date.parse(res.data[i]["DATETIME"]),
               y: Number(res.data[i]["_0113"]),
             });
-            dataV2.push({
+            dataV2WOBA.push({
               x: Date.parse(res.data[i]["DATETIME"]),
               y: Number(res.data[i]["_0116"]),
             });
-            dataV3.push({
+            dataV3TQA.push({
               x: Date.parse(res.data[i]["DATETIME"]),
               y: Number(res.data[i]["_0118"]),
             });
-            dataV4.push({
+            dataV4RPMA.push({
               x: Date.parse(res.data[i]["DATETIME"]),
               y: Number(res.data[i]["_0120"]),
             });
-            dataV5.push({
+            dataV5MFIA.push({
               x: Date.parse(res.data[i]["DATETIME"]),
               y: Number(res.data[i]["_0130"]),
             });
@@ -118,7 +138,31 @@ const Dash = (props) => {
           uiDiv.append(uiDivTitle);
           uiDivTitle.innerHTML = "Click para agregar gráfica";
 
-          const nombresGrafica = ["principal", "horizontal", "vertical"];
+          const strROPA = "ROPA";
+          const strWOBA = "WOBA";
+          const strTQA = "TQA";
+          const strRPMA = "RPMA";
+          const strMFIA = "MFIA";
+
+          const strROPAvertical = "ROPA v";
+          const strWOBAvertical = "WOBA v";
+          const strTQAvertical = "TQA v";
+          const strRPMAvertical = "RPMA v";
+          const strMFIAvertical = "MFIA v";
+
+          const nombresGrafica = [
+            "principal",
+            strMFIA,
+            strROPA,
+            strTQA,
+            strRPMA,
+            strWOBA,
+            strROPAvertical,
+            strMFIAvertical,
+            strRPMAvertical,
+            strWOBAvertical,
+            strTQAvertical,
+          ];
           const seriesList = [];
 
           const dashDiv = document.createElement("div_dash");
@@ -131,7 +175,7 @@ const Dash = (props) => {
 
           const chartDiv = document.createElement("div");
           dashDiv.append(chartDiv);
-          chartDiv.style.flexGrow = 3;
+          chartDiv.style.flexGrow = 2;
 
           const chartDiv2 = document.createElement("div2");
           dashDiv.append(chartDiv2);
@@ -147,12 +191,18 @@ const Dash = (props) => {
               buttonAddChart.innerHTML = label;
               buttonAddChart.style.whiteSpace = "nowrap";
               buttonAddChart.addEventListener("click", (e) => {
-                if (nombresGrafica[i] == "vertical") {
+                if (
+                  nombresGrafica[i] === strMFIAvertical ||
+                  nombresGrafica[i] === strROPAvertical ||
+                  nombresGrafica[i] === strRPMAvertical ||
+                  nombresGrafica[i] === strTQAvertical ||
+                  nombresGrafica[i] === strWOBAvertical
+                ) {
                   addGraphVertical(label, nombresGrafica[i]);
                 } else {
                   const graff = addGraph(label, nombresGrafica[i]);
 
-                  if (nombresGrafica[i] == "principal") {
+                  if (nombresGrafica[i] === "principal") {
                     const serie1 = graff.serie1;
                     const serie2 = graff.serie2;
                     seriesList.push(serie1);
@@ -164,148 +214,189 @@ const Dash = (props) => {
 
                   console.log(`selires list ${seriesList.length}`);
 
-                  if (graff != false) {
+                  if (graff !== false) {
                     chartList.push(graff.chart);
                     console.log(`chart list ${chartList.length}`);
                     synchronizeAxisIntervals(
                       ...chartList.map((chart) => chart.getDefaultAxisX())
                     );
                   }
-
-                  function createResulTable(a) {
-                    if (a === 0) {
-                      const resultTable = db2
-                        .createUIPanel({
-                          columnIndex: 0,
-                          rowIndex: 1,
-                          columnSpan: 5,
-                          rowSpan: 1,
-                        })
-                        .addUIElement(UILayoutBuilders.Column)
-                        .setMouseInteractions(false)
-                        .setMargin(0)
-                        .setPadding(5);
-
-                      return resultTable;
-                    }
-                    if (a === 1) {
-                      const resultTable = db
-                        .addUIElement(UILayoutBuilders.Column, db.engine.scale)
-                        .setMouseInteractions(false)
-                        .setDraggingMode(UIDraggingModes.notDraggable)
-                        .setMargin(10)
-                        .setPadding(10);
-                      return resultTable;
-                    }
-                  }
-
-                  const chart = chartList[0];
-
-                  chart
-                    .addUIElement(UIElementBuilders.ButtonBox)
-                    .setPosition({ x: 40, y: 100 })
-                    .setOrigin(UIOrigins.CenterTop)
-                    .setText("Vista fija")
-                    .setPadding({ top: 1, right: 1, bottom: 1, left: 1 })
-                    .setMargin({ top: 5, right: 1, bottom: 1, left: 1 })
-                    .setButtonOffSize(0)
-                    .setButtonOnSize(0)
-                    .setDraggingMode(UIDraggingModes.draggable)
-                    .onMouseClick((event) => {
-                      // Setup custom data cursor.
-                      var buttonControl = 0;
-                      crearCuadroVista(buttonControl);
-
-                      const vistafija = chart
-                        .addUIElement(UIElementBuilders.ButtonBox)
-                        .setPosition({ x: 20, y: 100 })
-                        .setOrigin(UIOrigins.CenterTop)
-                        .setText("Vista fija grafica")
-                        .setPadding({ top: 1, right: 1, bottom: 1, left: 1 })
-                        .setMargin({ top: 5, right: 1, bottom: 1, left: 1 })
-                        .setButtonOffSize(0)
-                        .setButtonOnSize(0)
-                        .setDraggingMode(UIDraggingModes.draggable)
-                        .onMouseClick((event) => {
-                          if (buttonControl == 0) {
-                            buttonControl = 1;
-                            crearCuadroVista(buttonControl);
-                          }
-                        });
-
-                      function crearCuadroVista(buttonControl) {
-                        const resultTable = createResulTable(buttonControl);
-                        const resultTableRows = new Array(10)
-                          .fill(0)
-                          .map((_) =>
-                            resultTable.addElement(UIElementBuilders.TextBox)
-                          );
-                        resultTable.dispose();
-
-                        const xTicks = chartList.map((chart) =>
-                          chart.getDefaultAxisX().addCustomTick().dispose()
-                        );
-
-                        chartList.forEach((chart) => {
-                          chart.setAutoCursorMode(AutoCursorModes.disabled);
-                          chart.onSeriesBackgroundMouseMove((_, event) => {
-                            const mouseLocationEngine =
-                              chart.engine.clientLocation2Engine(
-                                event.clientX,
-                                event.clientY
-                              );
-                            const mouseLocationAxisX = translatePoint(
-                              mouseLocationEngine,
-                              chart.engine.scale,
-                              {
-                                x: chart.getDefaultAxisX(),
-                                y: chart.getDefaultAxisY(),
-                              }
-                            ).x;
-                            resultTableRows[0].setText(
-                              "Fecha: " +
-                                chart
-                                  .getDefaultAxisX()
-                                  .formatValue(mouseLocationAxisX)
-                            );
-
-                            for (let i = 0; i < seriesList.length; i += 1) {
-                              const series = seriesList[i];
-                              const nearestDataPoint =
-                                series.solveNearestFromScreen(
-                                  mouseLocationEngine
-                                );
-                              resultTableRows[1 + i].setText(
-                                series.getName() +
-                                  ": " +
-                                  (nearestDataPoint
-                                    ? chart
-                                        .getDefaultAxisY()
-                                        .formatValue(
-                                          nearestDataPoint.location.y
-                                        )
-                                    : "")
-                              );
-                            }
-                            if (buttonControl === 0) {
-                              resultTable
-                                .restore()
-                                .setPosition({ y: 50, x: 50 });
-                            } else {
-                              resultTable
-                                .restore()
-                                .setPosition(mouseLocationEngine);
-                            }
-                            xTicks[0].restore().setValue(mouseLocationAxisX);
-                            xTicks[0].restore().setValue(mouseLocationAxisX);
-                          });
-                        });
-                      }
-                    });
                 }
               });
             }
           })();
+
+          if (chartList.length === 0) {
+            var labelVista = "vista fija";
+
+            const buttonAddChart = document.createElement("button");
+            uiDiv.append(buttonAddChart);
+            buttonAddChart.style.margin = "5px";
+            buttonAddChart.innerHTML = labelVista;
+            buttonAddChart.style.whiteSpace = "nowrap";
+            buttonAddChart.addEventListener("click", (e) => {
+              function createResulTable(a) {
+                if (a === 0) {
+                  const resultTable = db2
+                    .addUIElement(UILayoutBuilders.Column)
+                    .setMouseInteractions(true)
+                    .setMargin(0)
+                    .setPadding(5);
+
+                  resultTable
+                    .addElement(UIElementBuilders.ButtonBox)
+                    .setPosition({ x: 99, y: 100 })
+                    .setOrigin(UIOrigins.CenterTop)
+                    .setMargin({ top: 5, right: 1, bottom: 1, left: 1 })
+                    .setText("x")
+                    .setPadding({ top: 1, right: 1, bottom: 1, left: 1 })
+                    .setButtonOffSize(0)
+                    .setButtonOnSize(0)
+                    .setDraggingMode(UIDraggingModes.draggable)
+                    .onMouseClick((event) => {
+                      resultTable.dispose();
+                    });
+
+                  return resultTable;
+                }
+                if (a === 1) {
+                  const resultTable = db
+                    .addUIElement(UILayoutBuilders.Column, db.engine.scale)
+                    .setMouseInteractions(false)
+                    .setDraggingMode(UIDraggingModes.draggable)
+                    .setMargin(10)
+                    .setPadding(10);
+                  return resultTable;
+                }
+              }
+
+              crearCuadroVista(0);
+
+              function crearCuadroVista(buttonControl) {
+                const resultTable = createResulTable(buttonControl);
+                const resultTableRows = new Array(10)
+                  .fill(0)
+                  .map((_) =>
+                    resultTable.addElement(UIElementBuilders.TextBox)
+                  );
+                resultTable.dispose();
+
+                const xTicks = chartList.map((chart) =>
+                  chart.getDefaultAxisX().addCustomTick().dispose()
+                );
+
+                chartList.forEach((chart) => {
+                  chart.setAutoCursorMode(AutoCursorModes.disabled);
+                  chart.onSeriesBackgroundMouseMove((_, event) => {
+                    const mouseLocationEngine =
+                      chart.engine.clientLocation2Engine(
+                        event.clientX,
+                        event.clientY
+                      );
+                    const mouseLocationAxisX = translatePoint(
+                      mouseLocationEngine,
+                      chart.engine.scale,
+                      {
+                        x: chart.getDefaultAxisX(),
+                        y: chart.getDefaultAxisY(),
+                      }
+                    ).x;
+                    resultTableRows[0].setText(
+                      "Fecha: " +
+                        chart.getDefaultAxisX().formatValue(mouseLocationAxisX)
+                    );
+
+                    for (let i = 0; i < seriesList.length; i += 1) {
+                      const series = seriesList[i];
+                      const nearestDataPoint =
+                        series.solveNearestFromScreen(mouseLocationEngine);
+                      resultTableRows[1 + i].setText(
+                        series.getName() +
+                          ": " +
+                          (nearestDataPoint
+                            ? chart
+                                .getDefaultAxisY()
+                                .formatValue(nearestDataPoint.location.y)
+                            : "")
+                      );
+                    }
+                    if (buttonControl === 0) {
+                      resultTable.restore().setPosition({ y: 50, x: 50 });
+                    } else {
+                      resultTable.restore().setPosition(mouseLocationEngine);
+                    }
+                    xTicks[0].restore().setValue(mouseLocationAxisX);
+                    xTicks[0].restore().setValue(mouseLocationAxisX);
+                  });
+                });
+              }
+            });
+          }
+
+          var control = 0;
+          var labelVista3D = "Gráfica 3D";
+
+          const buttonAddChart = document.createElement("button");
+          uiDiv.append(buttonAddChart);
+          buttonAddChart.style.margin = "5px";
+          buttonAddChart.innerHTML = labelVista3D;
+          buttonAddChart.style.whiteSpace = "nowrap";
+          buttonAddChart.addEventListener("click", (e) => {
+            if (control === 0) {
+              const chart3D = db2
+                .createChart3D({
+                  columnIndex: 0,
+                  rowIndex: 2,
+                  columnSpan: 5,
+                  rowSpan: 1,
+                })
+                .setTitle("Gráfica 3D	");
+
+              const getDatosFallas = async (id) => {
+                axios
+                  .get("http://localhost:3001/datos")
+                  .then((response) => {
+                    if (response.status === 200) {
+                      console.log("OK fallas");
+                      console.log(response.data.length);
+
+                      const data3Dfallas = [];
+
+                      for (let i = 0; i < response.data.length; i++) {
+                        data3Dfallas.push({
+                          x: response.data[i]["X"],
+                          y: response.data[i]["Y"],
+                          z: response.data[i]["Z"],
+                        });
+                      }
+
+                      chart3D.addLegendBox();
+                      chart3D.addPointLineSeries().add(data3Dfallas);
+
+                      chart3D.getDefaultAxisX().setTitle("Eje X");
+                      chart3D.getDefaultAxisY().setTitle("Eje Y");
+                      chart3D.getDefaultAxisZ().setTitle("Eje Z");
+                    } else {
+                      console.log(
+                        "Ocurrió un error consultado los datos de fallas"
+                      );
+                      console.log(response.data);
+                    }
+                  })
+                  .catch((error) => {
+                    console.log(
+                      "Ocurrió un error consultado los datos de fallas"
+                    );
+                    console.log(error.message);
+                  });
+              };
+
+              getDatosFallas();
+              control = control + 1;
+            } else {
+              alert("La gráfica 3D está creada");
+            }
+          });
 
           const maxCellsCount = 6;
           const maxCellsCountV = 1;
@@ -321,13 +412,11 @@ const Dash = (props) => {
           const db2 = lightningChart().Dashboard({
             container: chartDiv2,
             theme: Themes.glacier,
-            numberOfRows: 2,
+            numberOfRows: 3,
             numberOfColumns: 5,
             disableAnimations: true,
           });
 
-          //.setSplitterStyle(emptyLine)
-          //.setSplitterStyleHighlight(emptyLine);
 
           function crear2Dchart(a, b, c, d = 1, tipoGrafica = "horizontal") {
             var tipoDb = undefined;
@@ -345,7 +434,7 @@ const Dash = (props) => {
                 columnSpan: c,
                 rowSpan: d,
               })
-              .setTitle("Live sales")
+              .setTitle(tipoGrafica)
               .setPadding({ right: 30 })
               .setMouseInteractionsWhileScrolling(true);
 
@@ -426,7 +515,7 @@ const Dash = (props) => {
           console.log("set chart data", data);
 
           function personalizarGradicas(grafica, nombre) {
-            if (nombre == "principal") {
+            if (nombre === "principal") {
               const graficaPrincipal = grafica;
               graficaPrincipal.serie1.clear().add(dataprincial);
               graficaPrincipal.serie2.clear().add(dataprincia2);
@@ -457,9 +546,9 @@ const Dash = (props) => {
 
               return graficaPrincipal.grafica;
             }
-            if (nombre == "horizontal") {
+            if (nombre === strROPA) {
               const graficaV1 = grafica;
-              graficaV1.serie1.clear().add(dataV1);
+              graficaV1.serie1.clear().add(dataV1ROPA);
               graficaV1.serie2.dispose();
               graficaV1.grafica
                 .getDefaultAxisX()
@@ -467,9 +556,98 @@ const Dash = (props) => {
               //legend.add(graficaV1.grafica);
               return graficaV1.grafica;
             }
-            if (nombre == "vertical") {
+
+            if (nombre === strMFIA) {
               const graficaV1 = grafica;
-              graficaV1.serie1.clear().add(dataV1revertida);
+              graficaV1.serie1.clear().add(dataV5MFIA);
+              graficaV1.serie2.dispose();
+              graficaV1.grafica
+                .getDefaultAxisX()
+                .setTickStrategy(AxisTickStrategies.Empty);
+              //legend.add(graficaV1.grafica);
+              return graficaV1.grafica;
+            }
+
+            if (nombre === strTQA) {
+              const graficaV1 = grafica;
+              graficaV1.serie1.clear().add(dataV3TQA);
+              graficaV1.serie2.dispose();
+              graficaV1.grafica
+                .getDefaultAxisX()
+                .setTickStrategy(AxisTickStrategies.Empty);
+              //legend.add(graficaV1.grafica);
+              return graficaV1.grafica;
+            }
+
+            if (nombre === strRPMA) {
+              const graficaV1 = grafica;
+              graficaV1.serie1.clear().add(dataV4RPMA);
+              graficaV1.serie2.dispose();
+              graficaV1.grafica
+                .getDefaultAxisX()
+                .setTickStrategy(AxisTickStrategies.Empty);
+              //legend.add(graficaV1.grafica);
+              return graficaV1.grafica;
+            }
+
+            if (nombre === strWOBA) {
+              const graficaV1 = grafica;
+              graficaV1.serie1.clear().add(dataV2WOBA);
+              graficaV1.serie2.dispose();
+              graficaV1.grafica
+                .getDefaultAxisX()
+                .setTickStrategy(AxisTickStrategies.Empty);
+              //legend.add(graficaV1.grafica);
+              return graficaV1.grafica;
+            }
+
+            if (nombre === strROPAvertical) {
+              const graficaV1 = grafica;
+              graficaV1.serie1.clear().add(dataV1revertidaROPA);
+              graficaV1.serie2.dispose();
+              graficaV1.grafica
+                .getDefaultAxisX()
+                .setTickStrategy(AxisTickStrategies.Empty);
+              //legend.add(graficaV1.grafica);
+              return graficaV1.grafica;
+            }
+
+            if (nombre === strTQAvertical) {
+              const graficaV1 = grafica;
+              graficaV1.serie1.clear().add(dataV3revertidaTQA);
+              graficaV1.serie2.dispose();
+              graficaV1.grafica
+                .getDefaultAxisX()
+                .setTickStrategy(AxisTickStrategies.Empty);
+              //legend.add(graficaV1.grafica);
+              return graficaV1.grafica;
+            }
+
+            if (nombre === strRPMAvertical) {
+              const graficaV1 = grafica;
+              graficaV1.serie1.clear().add(dataV4revertidaRPMA);
+              graficaV1.serie2.dispose();
+              graficaV1.grafica
+                .getDefaultAxisX()
+                .setTickStrategy(AxisTickStrategies.Empty);
+              //legend.add(graficaV1.grafica);
+              return graficaV1.grafica;
+            }
+
+            if (nombre === strMFIAvertical) {
+              const graficaV1 = grafica;
+              graficaV1.serie1.clear().add(dataV5revertidaMFIA);
+              graficaV1.serie2.dispose();
+              graficaV1.grafica
+                .getDefaultAxisX()
+                .setTickStrategy(AxisTickStrategies.Empty);
+              //legend.add(graficaV1.grafica);
+              return graficaV1.grafica;
+            }
+
+            if (nombre === strWOBAvertical) {
+              const graficaV1 = grafica;
+              graficaV1.serie1.clear().add(dataV2revertidaWOBA);
               graficaV1.serie2.dispose();
               graficaV1.grafica
                 .getDefaultAxisX()
@@ -506,7 +684,7 @@ const Dash = (props) => {
             const creacionGrafica = crear2Dchart(0, freeRow, 1, 1);
             const chart = personalizarGradicas(creacionGrafica, nombre);
 
-            if (nombre == "principal") {
+            if (nombre === "principal") {
               chart
                 .addUIElement(UIElementBuilders.ButtonBox)
                 .setPosition({ x: 90, y: 100 })
@@ -632,75 +810,13 @@ const Dash = (props) => {
                 charts.forEach((item) => item.updatePosition());
               });
 
-            if (nombre == "principal") {
-              chart
-                .addUIElement(UIElementBuilders.ButtonBox)
-                .setPosition({ x: 99, y: 95 })
-                .setOrigin(UIOrigins.CenterTop)
-                .setMargin({ top: 5, right: 1, bottom: 1, left: 1 })
-                .setText("3D")
-                .setPadding({ top: 1, right: 1, bottom: 1, left: 1 })
-                .setButtonOffSize(0)
-                .setButtonOnSize(0)
-                .setDraggingMode(UIDraggingModes.draggable)
-                .onMouseClick((event) => {
-                  chart.dispose();
-
-                  const char3D = db.createChart3D({
-                    columnIndex: 0,
-                    rowIndex: 0,
-                    columnSpan: 1,
-                    rowSpan: 1,
-                  });
-
-                  const getDatosFallas = async (id) => {
-                    axios
-                      .get("http://localhost:3001/datosfallas")
-                      .then((response) => {
-                        if (response.status === 200) {
-                          console.log("OK fallas");
-                          console.log(response.data.length);
-
-                          const data3Dfallas = [];
-
-                          for (let i = 0; i < response.data.length; i++) {
-                            data3Dfallas.push({
-                              x: response.data[i]["X"],
-                              y: response.data[i]["Y"],
-                              z: response.data[i]["Z"],
-                            });
-                          }
-
-                          char3D.addPointSeries().add(data3Dfallas);
-                        } else {
-                          console.log(
-                            "Ocurrió un error consultado los datos de fallas"
-                          );
-                          console.log(response.data);
-                        }
-                      })
-                      .catch((error) => {
-                        console.log(
-                          "Ocurrió un error consultado los datos de fallas"
-                        );
-                        console.log(error.message);
-                      });
-                  };
-
-                  getDatosFallas();
-                });
-            }
-
             const updatePosition = () => {
               const posEngine = translatePoint(
                 { x: 100, y: 100 },
                 chart.uiScale,
                 chart.engine.scale
               );
-              const posDocument = chart.engine.engineLocation2Client(
-                posEngine.x,
-                posEngine.y
-              );
+              chart.engine.engineLocation2Client(posEngine.x, posEngine.y);
             };
 
             charts.push({
@@ -711,7 +827,7 @@ const Dash = (props) => {
             updateDashboardRowHeights();
             charts.forEach((item) => item.updatePosition());
 
-            if (nombre == "principal") {
+            if (nombre === "principal") {
               const serie1 = creacionGrafica.serie1;
               const serie2 = creacionGrafica.serie2;
               return { chart: chart, serie1: serie1, serie2: serie2 };
@@ -766,20 +882,19 @@ const Dash = (props) => {
                   chartsVertical.findIndex((item) => item.chart === chart2),
                   1
                 );
-                updateDashboardRowHeightsVertical();
-                chartsVertical.forEach((item) => item.updatePosition());
+                if (chartsVertical.length > 0) {
+                  updateDashboardRowHeightsVertical();
+                  chartsVertical.forEach((item) => item.updatePositionV());
+                }
               });
 
-            const updatePosition = () => {
+            const updatePositionV = () => {
               const posEngine = translatePoint(
                 { x: 100, y: 100 },
                 chart2.uiScale,
                 chart2.engine.scale
               );
-              const posDocument = chart2.engine.engineLocation2Client(
-                posEngine.x,
-                posEngine.y
-              );
+              chart2.engine.engineLocation2Client(posEngine.x, posEngine.y);
               //buttonRemoveChart.style.left = `${posDocument.x}px`;
               //buttonRemoveChart.style.top = `${posDocument.y}px`;
             };
@@ -787,14 +902,15 @@ const Dash = (props) => {
             chartsVertical.push({
               row: freeRow,
               chart2,
-              updatePosition,
+              updatePositionV,
             });
             updateDashboardRowHeightsVertical();
-            chartsVertical.forEach((item) => item.updatePosition());
+            chartsVertical.forEach((item) => item.updatePositionV());
 
             return chart2;
           };
         }
+        console.timeEnd("loop");
 
         //console.log(res);
       })
